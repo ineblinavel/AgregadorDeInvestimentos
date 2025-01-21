@@ -18,5 +18,9 @@ target/
 *.iws
 *.iml
 *.ipr
-
+#enviroment variables
 .env
+
+#Keystore files
+src/main/resources/app.key
+src/main/resources/app.pub
