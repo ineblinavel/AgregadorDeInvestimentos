@@ -2,14 +2,16 @@ package com.luanr.agregadorinvestimentos.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.luanr.agregadorinvestimentos.dto.LoginRequest;
+import com.luanr.agregadorinvestimentos.dto.requests.LoginRequest;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.action.internal.OrphanRemovalAction;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -46,14 +48,18 @@ public class User {
     @JsonIgnore
     private List<Account> accounts;
 
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    private Set<Role> roles = new HashSet<>();
 
-    private Set<Role> roles;
+
+    @Version
+    private Long version;
 
     public User(UUID user_id, String username, String email, String password, Instant created_at, Instant updated_at, Set<Role> roles) {
         this.user_id = user_id;

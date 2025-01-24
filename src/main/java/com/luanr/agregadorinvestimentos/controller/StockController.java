@@ -1,9 +1,10 @@
 package com.luanr.agregadorinvestimentos.controller;
 
 
-import com.luanr.agregadorinvestimentos.dto.CreateStockDto;
-import com.luanr.agregadorinvestimentos.dto.StockResponseDto;
+import com.luanr.agregadorinvestimentos.dto.requests.CreateStockDto;
+import com.luanr.agregadorinvestimentos.dto.responses.StockResponseDto;
 import com.luanr.agregadorinvestimentos.service.StockService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class StockController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> createStock(@RequestBody CreateStockDto createStockDto){
+    public ResponseEntity<Void> createStock(@Valid @RequestBody CreateStockDto createStockDto){
         stockService.createStock(createStockDto);
         return ResponseEntity.ok().build();
     }

@@ -1,8 +1,8 @@
 package com.luanr.agregadorinvestimentos.service;
 
 import com.luanr.agregadorinvestimentos.client.BrapiClient;
-import com.luanr.agregadorinvestimentos.dto.AccountStockResponseDto;
-import com.luanr.agregadorinvestimentos.dto.AssociateAccountStockDto;
+import com.luanr.agregadorinvestimentos.dto.responses.AccountStockResponseDto;
+import com.luanr.agregadorinvestimentos.dto.requests.AssociateAccountStockDto;
 import com.luanr.agregadorinvestimentos.entity.AccountStock;
 import com.luanr.agregadorinvestimentos.entity.AccountStockId;
 import com.luanr.agregadorinvestimentos.repository.AccountRepository;
@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Service
 public class AccountService {
-    @Value("#{environment.TOKEN}")
+    @Value("${BRAPI_TOKEN}")
     private String TOKEN;
     private final AccountRepository accountRepository;
     private final StockRepository stockRepository;
@@ -52,7 +52,6 @@ public class AccountService {
         );
         accountStockRepository.save(Entity);
     }
-
     public List<AccountStockResponseDto> getAllStockByAccount(String accountId) {
         var account = accountRepository.findById(UUID.fromString(accountId)).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));

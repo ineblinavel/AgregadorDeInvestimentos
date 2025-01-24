@@ -3,8 +3,8 @@ package com.luanr.agregadorinvestimentos.service;
 import com.luanr.agregadorinvestimentos.client.BrapiClient;
 import com.luanr.agregadorinvestimentos.client.dto.DetaliedBrapiResponseDto;
 import com.luanr.agregadorinvestimentos.client.dto.DetaliedStockDto;
-import com.luanr.agregadorinvestimentos.dto.CreateStockDto;
-import com.luanr.agregadorinvestimentos.dto.StockResponseDto;
+import com.luanr.agregadorinvestimentos.dto.requests.CreateStockDto;
+import com.luanr.agregadorinvestimentos.dto.responses.StockResponseDto;
 import com.luanr.agregadorinvestimentos.entity.Stock;
 import com.luanr.agregadorinvestimentos.repository.StockRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 public class StockService {
 
-    @Value("#{environment.TOKEN}")
+    @Value("${BRAPI_TOKEN}")
     private String TOKEN;
     private final StockRepository stockRepository;
     private final BrapiClient brapiClient;

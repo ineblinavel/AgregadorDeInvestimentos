@@ -1,9 +1,9 @@
 package com.luanr.agregadorinvestimentos.service;
 
-import com.luanr.agregadorinvestimentos.dto.AccountResponseDto;
-import com.luanr.agregadorinvestimentos.dto.CreateAccountDto;
-import com.luanr.agregadorinvestimentos.dto.CreateUserDto;
-import com.luanr.agregadorinvestimentos.dto.UpdateUserDto;
+import com.luanr.agregadorinvestimentos.dto.responses.AccountResponseDto;
+import com.luanr.agregadorinvestimentos.dto.requests.CreateAccountDto;
+import com.luanr.agregadorinvestimentos.dto.requests.CreateUserDto;
+import com.luanr.agregadorinvestimentos.dto.requests.UpdateUserDto;
 import com.luanr.agregadorinvestimentos.entity.Account;
 import com.luanr.agregadorinvestimentos.entity.BillingAddress;
 import com.luanr.agregadorinvestimentos.entity.Role;
@@ -12,6 +12,7 @@ import com.luanr.agregadorinvestimentos.repository.AccountRepository;
 import com.luanr.agregadorinvestimentos.repository.BillingAddressRepository;
 import com.luanr.agregadorinvestimentos.repository.RoleRepository;
 import com.luanr.agregadorinvestimentos.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -59,12 +60,17 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public void deleteUser(String user_id) {
-        var id = UUID.fromString(user_id);
-        var exist = userRepository.existsById(id);
-        if(exist) {
-            userRepository.deleteById(id);
-        }
+    @Transactional
+    public void deleteUser(String userId) {
+        User user = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+
+
+        user.getRoles().clear();
+        user.getAccounts().clear();
+        userRepository.save(user);
+        userRepository.delete(user);
     }
 
     public void updateUser(String id, UpdateUserDto updateUserDto) {
@@ -76,7 +82,7 @@ public class UserService {
                     user.setUpdated_at(Instant.now());
                 }
                 if(updateUserDto.password() != null){
-                    user.setPassword(updateUserDto.password());
+                    user.setPassword(bCryptPasswordEncoder.encode(updateUserDto.password()));
                     user.setUpdated_at(Instant.now());
                 }
                 userRepository.save(user);
@@ -90,7 +96,7 @@ public class UserService {
         var user = userRepository.findById(UUID.fromString(id)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         //DTO -> Entity
-        var accountEntity = new Account(
+        var account = new Account(
                 null,
                 createAccountDto.description(),
                 user,
@@ -98,18 +104,15 @@ public class UserService {
                 new ArrayList<>()
         );
 
-        var accountCreated = accountRepository.save(accountEntity);
 
         var billingAddressEntity = new BillingAddress(
-                accountCreated.getAccount_id(),
-                accountCreated,
+                account.getAccount_id(),
+                account,
                 createAccountDto.street(),
                 createAccountDto.number()
         );
-
-        billingAddressRepository.save(billingAddressEntity);
-
-
+        account.setBillingAddress(billingAddressEntity);
+        accountRepository.save(account);
     }
 
     public List<AccountResponseDto> getAccountById(String id) {

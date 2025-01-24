@@ -1,15 +1,17 @@
 package com.luanr.agregadorinvestimentos.controller;
 
 
-import com.luanr.agregadorinvestimentos.dto.AccountResponseDto;
-import com.luanr.agregadorinvestimentos.dto.CreateAccountDto;
-import com.luanr.agregadorinvestimentos.dto.CreateUserDto;
-import com.luanr.agregadorinvestimentos.dto.UpdateUserDto;
+import com.luanr.agregadorinvestimentos.dto.responses.AccountResponseDto;
+import com.luanr.agregadorinvestimentos.dto.requests.CreateAccountDto;
+import com.luanr.agregadorinvestimentos.dto.requests.CreateUserDto;
+import com.luanr.agregadorinvestimentos.dto.requests.UpdateUserDto;
 import com.luanr.agregadorinvestimentos.entity.User;
 import com.luanr.agregadorinvestimentos.service.UserService;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -26,7 +28,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody CreateUserDto createUserDto){
+    public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserDto createUserDto){
         var userId = userService.createUser(createUserDto);
         return ResponseEntity.created(URI.create("/users/" + userId.toString())).build();
     }
@@ -35,11 +37,7 @@ public class UserController {
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<User> getUser(@PathVariable String id){
         var user = userService.getUser(id);
-        if(user.isPresent()){
-            return ResponseEntity.ok(user.get());
-        }else{
-            return ResponseEntity.notFound().build();
-        }
+        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping
@@ -50,28 +48,26 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<Void> updateUserbyId(@PathVariable String id,
-                                               @RequestBody UpdateUserDto updateUserDto){
-        userService.updateUser(id, updateUserDto);
+    @PutMapping("me")
+    public ResponseEntity<Void> updateUserbyId(@Valid @RequestBody UpdateUserDto updateUserDto , JwtAuthenticationToken token){
+        userService.updateUser(token.getName(), updateUserDto);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String id){
-        userService.deleteUser(id);
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteUser(JwtAuthenticationToken token){
+        userService.deleteUser(token.getName());
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/accounts")
-    public ResponseEntity<Void> createAccount(@PathVariable String id,
-                                           @RequestBody CreateAccountDto createAccountDto){
-        userService.createAccount(id, createAccountDto);
+    @PostMapping("/me/accounts")
+    public ResponseEntity<Void> createAccount(@Valid @RequestBody CreateAccountDto createAccountDto, JwtAuthenticationToken token){
+        userService.createAccount(token.getName(), createAccountDto);
         return ResponseEntity.ok().build();
     }
-    @GetMapping("/{id}/accounts")
-    public ResponseEntity<List<AccountResponseDto>> getAllaccountsById(@PathVariable String id){
-        var accounts = userService.getAccountById(id);
+    @GetMapping("/me/accounts")
+    public ResponseEntity<List<AccountResponseDto>> getAllaccountsById(JwtAuthenticationToken token){
+        var accounts = userService.getAccountById(token.getName());
         return ResponseEntity.ok(accounts);
     }
 

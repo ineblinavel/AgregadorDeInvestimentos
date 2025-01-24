@@ -1,9 +1,10 @@
 package com.luanr.agregadorinvestimentos.controller;
 
 
-import com.luanr.agregadorinvestimentos.dto.AccountStockResponseDto;
-import com.luanr.agregadorinvestimentos.dto.AssociateAccountStockDto;
+import com.luanr.agregadorinvestimentos.dto.responses.AccountStockResponseDto;
+import com.luanr.agregadorinvestimentos.dto.requests.AssociateAccountStockDto;
 import com.luanr.agregadorinvestimentos.service.AccountService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,7 @@ public class AccountControler {
 
     @PostMapping("/{accountId}/stock")
     public ResponseEntity<Void> associateStockToAccount(@PathVariable("accountId") String accountId ,
-                                                        @RequestBody AssociateAccountStockDto associateAccountStockDto){
+                                                        @Valid @RequestBody AssociateAccountStockDto associateAccountStockDto){
 
         accountService.associateStockToAccount(accountId, associateAccountStockDto);
         return ResponseEntity.ok().build();

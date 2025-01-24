@@ -1,11 +1,11 @@
 package com.luanr.agregadorinvestimentos.controller;
 
 
-import com.luanr.agregadorinvestimentos.dto.LoginRequest;
-import com.luanr.agregadorinvestimentos.dto.LoginResponse;
+import com.luanr.agregadorinvestimentos.dto.requests.LoginRequest;
+import com.luanr.agregadorinvestimentos.dto.responses.LoginResponse;
 import com.luanr.agregadorinvestimentos.entity.Role;
 import com.luanr.agregadorinvestimentos.repository.UserRepository;
-import org.bouncycastle.crypto.generators.BCrypt;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,7 +33,7 @@ public class TokenController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
         var user = userRepository.findByUsername(loginRequest.username());
         if(user.isEmpty() || !user.get().islogincorrect(loginRequest, bCryptPasswordEncoder)){
             throw new BadCredentialsException("Invalid username or password");
