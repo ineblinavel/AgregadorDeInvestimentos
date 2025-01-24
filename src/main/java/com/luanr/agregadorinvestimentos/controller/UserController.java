@@ -9,6 +9,7 @@ import com.luanr.agregadorinvestimentos.entity.User;
 import com.luanr.agregadorinvestimentos.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -31,6 +32,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<User> getUser(@PathVariable String id){
         var user = userService.getUser(id);
         if(user.isPresent()){
@@ -42,6 +44,7 @@ public class UserController {
 
     @GetMapping
     @Transactional
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<List<User>> getAllUsers(){
         var users = userService.getAllUsers();
         return ResponseEntity.ok(users);

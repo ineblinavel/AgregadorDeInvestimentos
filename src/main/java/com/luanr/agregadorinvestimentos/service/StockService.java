@@ -60,4 +60,5 @@ public class StockService {
             stockRepository.deleteById(stockId);
         }
     }
+
 }

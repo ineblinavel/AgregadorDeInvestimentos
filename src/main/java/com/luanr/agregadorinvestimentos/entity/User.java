@@ -4,6 +4,7 @@ package com.luanr.agregadorinvestimentos.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.luanr.agregadorinvestimentos.dto.LoginRequest;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@Data
+@NoArgsConstructor
 @Entity
 @Table(name = "users_tb")
 public class User {
@@ -52,7 +55,6 @@ public class User {
 
     private Set<Role> roles;
 
-
     public User(UUID user_id, String username, String email, String password, Instant created_at, Instant updated_at, Set<Role> roles) {
         this.user_id = user_id;
         this.username = username;
@@ -62,74 +64,8 @@ public class User {
         this.updated_at = updated_at;
         this.roles = roles;
     }
-    public User(){}
 
-    public UUID getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(UUID user_id) {
-        this.user_id = user_id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Instant getUpdated_at() {
-        return updated_at;
-    }
-
-    public void setUpdated_at(Instant updated_at) {
-        this.updated_at = updated_at;
-    }
-
-    public Instant getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(Instant created_at) {
-        this.created_at = created_at;
-    }
-
-
-    public List<Account> getAccounts() {
-        return accounts;
-    }
-
-    public void setAccounts(List<Account> accounts) {
-        this.accounts = accounts;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-
-    public boolean islogincorrect(LoginRequest loginRequest, PasswordEncoder passwordEncoder){
+    public boolean islogincorrect(@org.jetbrains.annotations.NotNull LoginRequest loginRequest, PasswordEncoder passwordEncoder){
         return passwordEncoder.matches(loginRequest.password(), this.password);
     }
 }

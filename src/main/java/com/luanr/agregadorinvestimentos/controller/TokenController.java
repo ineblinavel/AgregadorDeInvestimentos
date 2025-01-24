@@ -3,6 +3,7 @@ package com.luanr.agregadorinvestimentos.controller;
 
 import com.luanr.agregadorinvestimentos.dto.LoginRequest;
 import com.luanr.agregadorinvestimentos.dto.LoginResponse;
+import com.luanr.agregadorinvestimentos.entity.Role;
 import com.luanr.agregadorinvestimentos.repository.UserRepository;
 import org.bouncycastle.crypto.generators.BCrypt;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestController
 public class TokenController {
@@ -37,11 +39,18 @@ public class TokenController {
             throw new BadCredentialsException("Invalid username or password");
         }
         var now = Instant.now();
+
+        var scope = user.get().getRoles()
+                .stream()
+                .map(Role::getRoleName)
+                .collect(Collectors.joining(" "));
+
         var expiresIn = 450L;
         var claim = JwtClaimsSet.builder()
                 .issuer("agregador-investimentos")
                 .subject(user.get().getUser_id().toString())
                 .expiresAt(now.plusSeconds(expiresIn))
+                .claim("scope", scope)
                 .issuedAt(now)
                 .build();
         var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claim)).getTokenValue();

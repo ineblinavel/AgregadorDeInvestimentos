@@ -1,11 +1,12 @@
 package com.luanr.agregadorinvestimentos.config;
 
-
 import com.luanr.agregadorinvestimentos.entity.Role;
 import com.luanr.agregadorinvestimentos.entity.User;
 import com.luanr.agregadorinvestimentos.repository.RoleRepository;
 import com.luanr.agregadorinvestimentos.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,20 +16,20 @@ import java.util.Set;
 import java.util.UUID;
 
 @Configuration
+public class AdminUserConfig implements CommandLineRunner { 
 
-public class AdminUserConfig implements CommandLineRunner {
+    @Autowired
     private final RoleRepository roleRepository;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-    private UserRepository userRepository;
-    
-    @Value("#{environment.ADMIN_USER}")
-    string ADMIN_USER;
+    @Autowired
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    private final UserRepository userRepository;
 
-    @Value("#{environment.ADMIN_PASSWORD}")
-    string ADMIN_PASSWORD;
+    private final String ADMIN_USER = "admin";
 
-    @Value("#{environment.ADMIN_EMAIL}")
-    string ADMIN_EMAIL;
+    private final String ADMIN_PASSWORD = "adminpass";
+
+    private final String ADMIN_EMAIL = "admin@example";
 
     public AdminUserConfig(RoleRepository roleRepository, BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository) {
         this.roleRepository = roleRepository;
@@ -40,9 +41,16 @@ public class AdminUserConfig implements CommandLineRunner {
     @Transactional
     public void run(String... args) throws Exception {
 
-        var adminRole = roleRepository.findByRoleName(Role.Values.ADMIN.name()).orElseThrow();
+        if (ADMIN_USER == null || ADMIN_PASSWORD == null || ADMIN_EMAIL == null) {
+            throw new IllegalStateException("One or more required environment variables are not set.");
+        }
 
-        var userAdmin = userRepository.findByUsername("admin");
+        var adminRole = roleRepository.findByRoleName(Role.Values.ADMIN.name()).orElseThrow(() ->
+                new IllegalStateException("Role ADMIN not found")
+        );
+
+        var userAdmin = userRepository.findByUsername(ADMIN_USER);
+
 
         userAdmin.ifPresentOrElse(
                 (user) -> {

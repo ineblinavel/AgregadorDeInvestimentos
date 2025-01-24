@@ -5,7 +5,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.*;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "stocks_tb")
 public class Stock {
@@ -20,35 +24,5 @@ public class Stock {
     @Column (name = "currency")
     private String currency;
 
-    public Stock() {}
 
-    public Stock(String stockId, String description, String currency) {
-        this.stockId = stockId;
-        this.description = description;
-        this.currency = currency;
-    }
-
-    public String getStockId() {
-        return stockId;
-    }
-
-    public void setStockId(String stockId) {
-        this.stockId = stockId;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
 }
