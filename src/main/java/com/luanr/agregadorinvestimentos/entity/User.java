@@ -44,7 +44,7 @@ public class User {
     private Instant updated_at;
 
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Account> accounts;
 
@@ -57,6 +57,8 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
+    @Column(name = "active_account_id")
+    private UUID active_account_id;
 
     @Version
     private Long version;

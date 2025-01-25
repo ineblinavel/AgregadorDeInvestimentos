@@ -1,13 +1,18 @@
 package com.luanr.agregadorinvestimentos.service;
 
 import com.luanr.agregadorinvestimentos.client.brapi_client.BrapiClient;
+import com.luanr.agregadorinvestimentos.client.brapi_client.dto.DetaliedBrapiResponseDto;
+import com.luanr.agregadorinvestimentos.client.brapi_client.dto.DetaliedStockDto;
 import com.luanr.agregadorinvestimentos.dto.responses.AccountStockResponseDto;
 import com.luanr.agregadorinvestimentos.dto.requests.AssociateAccountStockDto;
-import com.luanr.agregadorinvestimentos.entity.AccountStock;
-import com.luanr.agregadorinvestimentos.entity.AccountStockId;
+import com.luanr.agregadorinvestimentos.entity.*;
+import com.luanr.agregadorinvestimentos.mapper.AccountStockMapper;
 import com.luanr.agregadorinvestimentos.repository.AccountRepository;
 import com.luanr.agregadorinvestimentos.repository.AccountStockRepository;
 import com.luanr.agregadorinvestimentos.repository.StockRepository;
+import com.luanr.agregadorinvestimentos.repository.UserRepository;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,15 +29,16 @@ public class AccountService {
     private final StockRepository stockRepository;
     private final AccountStockRepository accountStockRepository;
     private final BrapiClient brapiClient;
-
-    public AccountService(AccountRepository accountRepository, StockRepository stockRepository, AccountStockRepository accountStockRepository, BrapiClient brapiClient) {
+    private final UserRepository userRepository;
+    private final AccountStockMapper accountStockMapper;
+    public AccountService(AccountRepository accountRepository, StockRepository stockRepository, AccountStockRepository accountStockRepository, BrapiClient brapiClient, UserRepository userRepository, AccountStockMapper accountStockMapper) {
         this.accountRepository = accountRepository;
         this.stockRepository = stockRepository;
         this.accountStockRepository = accountStockRepository;
         this.brapiClient = brapiClient;
+        this.userRepository = userRepository;
+        this.accountStockMapper = accountStockMapper;
     }
-
-
 
     public void associateStockToAccount(String accountId, AssociateAccountStockDto associateAccountStockDto) {
 
@@ -42,7 +48,6 @@ public class AccountService {
         var stock = stockRepository.findById(associateAccountStockDto.stockId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock not found"));
 
-        //DTO -> Entity
         var account_id = new AccountStockId(account.getAccount_id(), stock.getStockId());
         var Entity = new AccountStock(
                 account_id,
@@ -52,21 +57,56 @@ public class AccountService {
         );
         accountStockRepository.save(Entity);
     }
-    public List<AccountStockResponseDto> getAllStockByAccount(String accountId) {
-        var account = accountRepository.findById(UUID.fromString(accountId)).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
-        return account.getAccountStocks().stream().map(as -> new AccountStockResponseDto(
-                as.getStock().getStockId(),
-                as.getStock().getDescription(),
-                as.getQuantity(),
-                getTotal(as.getQuantity(), as.getStock().getStockId())
-        )).toList();
+    @Transactional
+    public void associateStockToActiveAccount(UUID userId, AssociateAccountStockDto dto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if(user.getActive_account_id() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User has no active account");
+        }
+        Account account = accountRepository.findById(user.getActive_account_id())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+
+        DetaliedBrapiResponseDto stockResponse = brapiClient.getDetaliedQuote(TOKEN, dto.stockId());
+
+        if(stockResponse.results() == null || stockResponse.results().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock not found");
+        }
+        Stock stock = stockRepository.findById(dto.stockId()).orElseGet(() -> {
+            DetaliedStockDto apiStock = stockResponse.results().getFirst();
+            Stock newStock = new Stock(dto.stockId(), apiStock.longName(), apiStock.currency());
+            return stockRepository.save(newStock);
+        });
+        var accountStockId = new AccountStockId(account.getAccount_id(), stock.getStockId());
+        var accountStock = new AccountStock(accountStockId, account, stock, dto.quantity());
+        accountStockRepository.save(accountStock);
+    }
+
+    public List<AccountStockResponseDto> getStocksFromActiveAccount(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (user.getActive_account_id() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma conta selecionada");
+        }
+
+        Account account = accountRepository.findById(user.getActive_account_id())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conta não encontrada"));
+
+        return account.getAccountStocks().stream()
+                .map(as -> accountStockMapper.toResponseDto(as, getTotal(as.getQuantity(), as.getStock().getStockId())))
+                .toList();
     }
 
     private Double getTotal(Long quantity, String stockId) {
-        var response = brapiClient.getQuote(TOKEN, stockId);
-        var price = response.results().getFirst().regularMarketPrice();
-        return price * quantity;
+        try {
+            var response = brapiClient.getQuote(TOKEN, stockId);
+            var price = response.results().getFirst().regularMarketPrice();
+            return price * quantity;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Erro ao buscar preço da stock");
+        }
     }
 }
+

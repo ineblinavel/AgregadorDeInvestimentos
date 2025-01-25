@@ -5,6 +5,7 @@ import com.luanr.agregadorinvestimentos.dto.responses.AccountResponseDto;
 import com.luanr.agregadorinvestimentos.dto.requests.CreateAccountDto;
 import com.luanr.agregadorinvestimentos.dto.requests.CreateUserDto;
 import com.luanr.agregadorinvestimentos.dto.requests.UpdateUserDto;
+import com.luanr.agregadorinvestimentos.dto.responses.UserResponseDto;
 import com.luanr.agregadorinvestimentos.entity.User;
 import com.luanr.agregadorinvestimentos.service.UserService;
 import jakarta.transaction.Transactional;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -48,7 +50,13 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @PutMapping("me")
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDto> getMe(JwtAuthenticationToken token) {
+        UserResponseDto response = userService.getMe(UUID.fromString(token.getName()));
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/me")
     public ResponseEntity<Void> updateUserbyId(@Valid @RequestBody UpdateUserDto updateUserDto , JwtAuthenticationToken token){
         userService.updateUser(token.getName(), updateUserDto);
         return ResponseEntity.noContent().build();
@@ -71,4 +79,10 @@ public class UserController {
         return ResponseEntity.ok(accounts);
     }
 
+
+    @PostMapping("me/accounts/{accountId}/select")
+    public ResponseEntity<Void> selectAccount(@PathVariable String accountId, JwtAuthenticationToken token){
+        userService.selectActiveAccount(UUID.fromString(token.getName()),UUID.fromString(accountId));
+        return ResponseEntity.ok().build();
+    }
 }
