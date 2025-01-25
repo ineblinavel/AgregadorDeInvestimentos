@@ -1,6 +1,6 @@
 package com.luanr.agregadorinvestimentos.service;
 
-import com.luanr.agregadorinvestimentos.client.BrapiClient;
+import com.luanr.agregadorinvestimentos.client.brapi_client.BrapiClient;
 import com.luanr.agregadorinvestimentos.dto.responses.AccountStockResponseDto;
 import com.luanr.agregadorinvestimentos.dto.requests.AssociateAccountStockDto;
 import com.luanr.agregadorinvestimentos.entity.AccountStock;

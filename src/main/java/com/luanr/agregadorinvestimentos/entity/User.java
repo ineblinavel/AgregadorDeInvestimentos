@@ -44,7 +44,7 @@ public class User {
     private Instant updated_at;
 
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Account> accounts;
 

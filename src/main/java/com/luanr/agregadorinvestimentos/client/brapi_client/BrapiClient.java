@@ -1,8 +1,8 @@
-package com.luanr.agregadorinvestimentos.client;
+package com.luanr.agregadorinvestimentos.client.brapi_client;
 
 
-import com.luanr.agregadorinvestimentos.client.dto.BrapiResponseDto;
-import com.luanr.agregadorinvestimentos.client.dto.DetaliedBrapiResponseDto;
+import com.luanr.agregadorinvestimentos.client.brapi_client.dto.BrapiResponseDto;
+import com.luanr.agregadorinvestimentos.client.brapi_client.dto.DetaliedBrapiResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

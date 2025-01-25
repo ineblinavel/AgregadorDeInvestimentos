@@ -1,4 +1,4 @@
-package com.luanr.agregadorinvestimentos.client.dto;
+package com.luanr.agregadorinvestimentos.client.brapi_client.dto;
 
 import java.util.List;
 

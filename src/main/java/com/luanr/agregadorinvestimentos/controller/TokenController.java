@@ -56,6 +56,7 @@ public class TokenController {
         var jwtValue = jwtEncoder.encode(JwtEncoderParameters.from(claim)).getTokenValue();
         return ResponseEntity.ok(new LoginResponse(jwtValue, expiresIn));
     }
+
 }
 
 

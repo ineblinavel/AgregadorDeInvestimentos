@@ -1,7 +1,9 @@
 package com.luanr.agregadorinvestimentos.controller;
 
 
+import com.luanr.agregadorinvestimentos.client.alpha_vantagem.dto.SearchStockResponseDto;
 import com.luanr.agregadorinvestimentos.dto.requests.CreateStockDto;
+import com.luanr.agregadorinvestimentos.dto.requests.SearchStockDto;
 import com.luanr.agregadorinvestimentos.dto.responses.StockResponseDto;
 import com.luanr.agregadorinvestimentos.service.StockService;
 import jakarta.validation.Valid;
@@ -34,5 +36,11 @@ public class StockController {
     public ResponseEntity<Void> deleteStock(@PathVariable String stockId){
         stockService.deleteStock(stockId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<SearchStockResponseDto> searchStock(@Valid @RequestBody SearchStockDto searchStockDto){
+        var stocks = stockService.searchStock(searchStockDto.keyword());
+        return ResponseEntity.ok(stocks);
     }
 }
