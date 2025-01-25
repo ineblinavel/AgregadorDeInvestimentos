@@ -24,5 +24,4 @@ target/
 #Keystore files
 src/main/resources/app.key
 src/main/resources/app.pub
-application.properties
-application-*.properties
+src/main/resources/application.properties
