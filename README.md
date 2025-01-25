@@ -1,183 +1,138 @@
-# API de Gestão de Investimentos  
+# 💹 API de Gestão de Investimentos
 
-![Java](https://img.shields.io/badge/Java-21-blue)  
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0-green)  
-![MySQL](https://img.shields.io/badge/MySQL-Docker-orange)  
-![JUnit](https://img.shields.io/badge/Tests-JUnit-red)  
+[![Java 21](https://img.shields.io/badge/Java-21-%23ED8B00?logo=openjdk)](https://www.oracle.com/java/)  
+[![Spring Boot 3.3.7](https://img.shields.io/badge/Spring%20Boot-3.3.7-%236DB33F?logo=spring)](https://spring.io/projects/spring-boot)  
+[![MySQL 8.0](https://img.shields.io/badge/MySQL-8.0-%234479A1?logo=mysql)](https://www.mysql.com/)  
+[![Docker](https://img.shields.io/badge/Docker-✔️-%232496ED?logo=docker)](https://www.docker.com/)
 
-Uma API RESTful desenvolvida em Java com Spring Boot para gerenciar usuários, contas e investimentos em ações. A aplicação permite a integração com a API Brapi para validação e consulta de ações, cálculo de valores investidos, e oferece suporte a múltiplas contas por usuário.  
-
----
-
-## 🚀 **Funcionalidades**  
-
-- **Gerenciamento de Usuários:**  
-  CRUD completo para criar, listar, atualizar e deletar usuários.  
-- **Gerenciamento de Contas:**  
-  Cada usuário pode ter múltiplas contas vinculadas.  
-- **Gerenciamento de Ações (Stocks):**  
-  Cada conta pode conter várias ações com os seguintes recursos:  
-  - Validação do nome da ação usando a API Brapi.  
-  - Consulta do preço atual (regularMarketPrice).  
-  - Cálculo do valor total investido em cada ação.  
-- **Testes:**  
-  - Testes de integração com **Insomnia**.  
-  - Testes unitários em desenvolvimento usando **JUnit** e **Mockito**.  
+API RESTful para gerenciar portfólios de investimentos com integração em tempo real de cotações via **[Brapi](https://brapi.dev/)**.
 
 ---
 
-## 🛠️ **Tecnologias Utilizadas**  
+## ✨ **Funcionalidades**
 
-- **Java 21**  
-- **Spring Boot 3.3.7**  
-- **MySQL** (gerenciado com Docker)  
-- **API Externa:** [Brapi](https://brapi.dev/)  
-- **Ferramentas de Teste:** Insomnia, JUnit, Mockito  
-# API Endpoints
+### 👤 **Usuários**
+- ✅ Cadastro, listagem, atualização e exclusão
+- 🔒 Autenticação JWT
+- 🔄 Atualização parcial (username ou password)
 
-## Usuários
+### 💼 **Contas**
+- ➕ Múltiplas contas por usuário
+- 🏠 Vinculação de endereço de cobrança
+- 🎯 Seleção de conta ativa
 
-### 1. Criar Usuário
-**Endpoint:**
-```
-POST /users
-```
-**Exemplo de Corpo:**
+### 📈 **Investimentos**
+- 🔍 Validação de tickers via Brapi
+- 💰 Cálculo automático do valor total investido
+- 📊 Associação de ações a contas
+
+---
+
+## 🛠️ **Tecnologias**
+
+| **Categoria**        | **Tecnologias**                                                                |
+|----------------------|--------------------------------------------------------------------------------|
+| **Backend**          | Java 21, Spring Boot 3, Spring Data JPA, Spring Security, OpenFeign            |
+| **Banco de Dados**   | MySQL 8.0 (Docker)                                                             |
+| **Autenticação**     | JWT, Spring Security OAuth2                                                    |
+| **APIs Externas**    | Alpha Vantage, Brapi                                                           |
+| **Testes**           | JUnit 5, Mockito, Insomnia                                                     |
+| **Ferramentas**      | Docker, Lombok, MapStruct                                                      |
+
+---
+
+
+## 📡 **Endpoints**
+
+### 👤 **Autenticação**
+
+| **Método** | **Endpoint** | **Ação**                  |
+|------------|--------------|---------------------------|
+| POST       | `/login`     | Gera token JWT           |
+
+#### Exemplo de Request (POST /login):
 ```json
 {
-  "username": "username",
-  "email": "@email",
-  "password": "password"
+  "username": "admin",
+  "password": "admin123"
 }
-```
-
-### 2. Listar Todos os Usuários
-**Endpoint:**
-```
-GET /users
-```
-
-### 3. Buscar Usuário pelo ID
-**Endpoint:**
-```
-GET /users/{userId}
-```
-
-### 4. Atualizar Usuário
-**Endpoint:**
-```
-PUT /users/{userId}
-```
-**Exemplo de Corpo:**
-```json
-{
-  "username": "novo username"
-  "password": "nova senha"
-}
-```
-**Ele tambem pode ser Atualizado passando Apenas a senha ou username**
-
-### 5. Deletar Usuário por ID
-**Endpoint:**
-```
-DELETE /users/{userId}
 ```
 
 ---
 
-## Contas
+### 👤 **Usuários**
 
-### 1. Criar Conta
-**Endpoint:**
-```
-POST /users/{userId}/accounts
-```
-**Exemplo de Corpo:**
+| **Método** | **Endpoint** | **Ação**                  |
+|------------|--------------|---------------------------|
+| POST       | `/users`     | Cria usuário             |
+| GET        | `/users/me`  | Retorna dados do usuário logado |
+| PUT        | `/users/me`  | Atualiza username/password|
+| DELETE     | `/users/me`  | Deleta a Conta            |
+| POST       | `me/accounts/{accountId}/select`| Associa ao usuario logado umas das suas contas|
+
+#### Exemplo de Request (POST /users):
 ```json
 {
-  "description": "nome da conta",
-  "street": "rua",
-  "number": 55
+  "username": "investidor123",
+  "email": "invest@example.com",
+  "password": "SenhaSegura@123"
 }
-```
-
-### 2. Listar Contas de um Usuário
-**Endpoint:**
-```
-GET /users/{userId}/accounts
 ```
 
 ---
 
-## Stocks
+### 💼 **Contas**
 
-### 1. Criar Stock
-**Endpoint:**
-```
-POST /stock
-```
-**Exemplo de Corpo:**
+| **Método** | **Endpoint**                  | **Ação**                    |
+|------------|-------------------------------|-----------------------------|
+| POST       | `/users/me/accounts`          | Cria nova conta com endereço de cobrança |
+| GET        | `/users/me/accounts`          | Lista todas as contas associadas ao usuario logado |
+| POST       | `/account/stock`              | Associa ação à conta ativa  |
+
+#### Exemplo de Request (POST /users/me/accounts):
 ```json
 {
-  "stockId": "TSLA"
+  "description": "Conta Corrente",
+  "street": "Av. Paulista",
+  "number": 1000
 }
 ```
-**A Stock id passada tem que ser uma ticker valida**
+#### Exemplo de Request(POST /account/stock)
+```json
+{
+    "stockId" : "KO",
+    "quantity" : "100"
+}
 
-### 2. Listar Todas as Stocks
-**Endpoint:**
 ```
-GET /stock
-```
-**Exemplo De Resposta**
-```
+---
+
+### 📈 **Ações (Stocks)**
+
+| **Método** | **Endpoint**                    | **Ação**                     |
+|------------|---------------------------------|------------------------------|
+| GET        | `/stock`                        | Lista todas as ações (ADMIN) |
+| POST       | `/stock/search`                 | Busca ações por keyword      |
+
+#### Exemplo de Response (GET /account/{accountId}/stock):
+```json
 [
-	{
-		"stockId": "KO",
-		"description": "The Coca-Cola Company",
-		"currency": "USD"
-	},
-	{
-		"stockId": "PETR4",
-		"description": "Petróleo Brasileiro S.A. - Petrobras",
-		"currency": "BRL"
-	}
+  {
+    "stockId": "PETR4",
+    "description": "Petróleo Brasileiro S.A.",
+    "quantity": 150,
+    "totalValue": 7500.00
+  }
 ]
 ```
 
-### 3. Deletar Stock pelo Stock ID
-**Endpoint:**
-```
-DELETE /stock/{stockId}
-```
+---
 
-### 4. Associar Conta a uma Stock
-**Endpoint:**
-```
-POST /account/{accountId}/stock
-```
-**Exemplo de Corpo:**
-```json
-{
-  "stockId": "KO",
-  "quantity": 100
-}
-```
+## 🔒 **Segurança**
 
-### 5. Listar Todos os Stocks de uma Conta
-**Endpoint:**
-```
-GET /account/{accountId}/stock
-```
-**Exemplo De Resposta**
-```
-  [
-	{
-		"stockId": "KO",
-		"description": "The Coca-Cola Company",
-		"quantity": 100,
-		"totalValue": 6271.0
-	}
-]
-```
+- **Roles**: 
+  - ADMIN: Gerencia usuários e ações
+  - BASIC: Operações básicas
+- Endpoints protegidos com JWT no header `Authorization: Bearer <token>`.
+- Senhas criptografadas com BCrypt.
 
