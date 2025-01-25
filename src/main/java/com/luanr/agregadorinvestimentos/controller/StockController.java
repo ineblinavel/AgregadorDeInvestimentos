@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/stock")
 public class StockController {
-    StockService stockService;
+    private final StockService stockService;
 
     public StockController(StockService stockService) {
         this.stockService = stockService;

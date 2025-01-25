@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/account").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/account").authenticated()
                         .requestMatchers(HttpMethod.GET, "/stock").permitAll()
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.disable())

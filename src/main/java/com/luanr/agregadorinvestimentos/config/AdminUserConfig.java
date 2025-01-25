@@ -6,6 +6,7 @@ import com.luanr.agregadorinvestimentos.repository.RoleRepository;
 import com.luanr.agregadorinvestimentos.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,18 +17,20 @@ import java.util.Set;
 @Configuration
 public class AdminUserConfig implements CommandLineRunner { 
 
-    @Autowired
     private final RoleRepository roleRepository;
-    @Autowired
+
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    @Autowired
+
     private final UserRepository userRepository;
 
-    private final String ADMIN_USER = "admin";
+    @Value("${ADMIN_USER}")
+    private String ADMIN_USER ;
 
-    private final String ADMIN_PASSWORD = "adminpass";
+    @Value("${ADMIN_PASSWORD}")
+    private String ADMIN_PASSWORD;
 
-    private final String ADMIN_EMAIL = "admin@example";
+    @Value("${ADMIN_EMAIL}")
+    private String ADMIN_EMAIL;
 
     public AdminUserConfig(RoleRepository roleRepository, BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository) {
         this.roleRepository = roleRepository;

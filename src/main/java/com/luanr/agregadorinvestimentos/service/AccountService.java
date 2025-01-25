@@ -1,8 +1,8 @@
 package com.luanr.agregadorinvestimentos.service;
 
 import com.luanr.agregadorinvestimentos.client.brapi_client.BrapiClient;
-import com.luanr.agregadorinvestimentos.client.brapi_client.dto.DetaliedBrapiResponseDto;
-import com.luanr.agregadorinvestimentos.client.brapi_client.dto.DetaliedStockDto;
+import com.luanr.agregadorinvestimentos.client.brapi_client.dto.DetailedStockDto;
+import com.luanr.agregadorinvestimentos.client.brapi_client.dto.DetailedBrapiResponseDto;
 import com.luanr.agregadorinvestimentos.dto.responses.AccountStockResponseDto;
 import com.luanr.agregadorinvestimentos.dto.requests.AssociateAccountStockDto;
 import com.luanr.agregadorinvestimentos.entity.*;
@@ -12,7 +12,6 @@ import com.luanr.agregadorinvestimentos.repository.AccountStockRepository;
 import com.luanr.agregadorinvestimentos.repository.StockRepository;
 import com.luanr.agregadorinvestimentos.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -69,13 +68,13 @@ public class AccountService {
         Account account = accountRepository.findById(user.getActive_account_id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
-        DetaliedBrapiResponseDto stockResponse = brapiClient.getDetaliedQuote(TOKEN, dto.stockId());
+        DetailedBrapiResponseDto stockResponse = brapiClient.getDetaliedQuote(TOKEN, dto.stockId());
 
         if(stockResponse.results() == null || stockResponse.results().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock not found");
         }
         Stock stock = stockRepository.findById(dto.stockId()).orElseGet(() -> {
-            DetaliedStockDto apiStock = stockResponse.results().getFirst();
+            DetailedStockDto apiStock = stockResponse.results().getFirst();
             Stock newStock = new Stock(dto.stockId(), apiStock.longName(), apiStock.currency());
             return stockRepository.save(newStock);
         });
