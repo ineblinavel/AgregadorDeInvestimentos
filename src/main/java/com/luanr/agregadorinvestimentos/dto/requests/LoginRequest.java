@@ -3,7 +3,8 @@ package com.luanr.agregadorinvestimentos.dto.requests;
 import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequest(
-        @NotBlank String username,
-        @NotBlank String password
-) {
-}
+        @NotBlank(message = "O nome de usuário é obrigatório")
+        String username,
+        @NotBlank(message = "A senha é obrigatória")
+        String password
+) {}

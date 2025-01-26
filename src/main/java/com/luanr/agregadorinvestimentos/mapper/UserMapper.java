@@ -14,7 +14,11 @@ import java.util.Set;
 @Component
 public class UserMapper {
 
-    AccountMapper accountMapper;
+    private final AccountMapper accountMapper;
+
+    public UserMapper(AccountMapper accountMapper) {
+        this.accountMapper = accountMapper;
+    }
 
 
     public User toEntity(CreateUserDto createUserDto, BCryptPasswordEncoder encoder, Role role) {

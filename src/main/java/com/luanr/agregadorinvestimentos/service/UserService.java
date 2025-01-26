@@ -46,6 +46,10 @@ public class UserService {
 
     @Transactional
     public UUID createUser(CreateUserDto createUserDto) {
+        if(userRepository.existsByUsername(createUserDto.username())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
+        }
+
         Role role = roleRepository.findById(Role.Values.BASIC.getRoleId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR));
         User Entity = userMapper.toEntity(createUserDto, bCryptPasswordEncoder, role);
@@ -90,33 +94,14 @@ public class UserService {
     }
 
     public void createAccount(String id, CreateAccountDto createAccountDto) {
-
         var user = userRepository.findById(UUID.fromString(id)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        //DTO -> Entity
-        var account = new Account(
-                null,
-                createAccountDto.description(),
-                user,
-                null,
-                new ArrayList<>()
-        );
-
-
-        var billingAddressEntity = new BillingAddress(
-                account.getAccount_id(),
-                account,
-                createAccountDto.street(),
-                createAccountDto.number()
-        );
-        account.setBillingAddress(billingAddressEntity);
+        var account = accountMapper.toEntity(createAccountDto, user);
         accountRepository.save(account);
     }
 
     public List<AccountResponseDto> getAccountById(String id) {
         var user = userRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
         return user.getAccounts().stream().map(accountMapper::toResponseDto).toList();
     }
 
@@ -131,12 +116,10 @@ public class UserService {
     public void selectActiveAccount(UUID userId, UUID accountId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
         boolean accountExists = user.getAccounts().stream()
                 .anyMatch(account -> account.getAccount_id().equals(accountId));
-
         if (!accountExists) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Conta não pertence ao usuário");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Account dont belong to user");
         }
         user.setActive_account_id(accountId);
         userRepository.save(user);

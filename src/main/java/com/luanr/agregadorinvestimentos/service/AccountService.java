@@ -67,35 +67,36 @@ public class AccountService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
-        if(user.getActive_account_id() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User has no active account");
+        if (user.getActive_account_id() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The user has no active account");
         }
+
         Account account = accountRepository.findById(user.getActive_account_id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
-        DetailedBrapiResponseDto stockResponse = brapiClient.getDetaliedQuote(TOKEN, dto.stockId());
 
-        if(stockResponse.results() == null || stockResponse.results().isEmpty()) {
+        DetailedBrapiResponseDto stockResponse = brapiClient.getDetaliedQuote(TOKEN, dto.stockId());
+        if (stockResponse.results() == null || stockResponse.results().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Stock not found");
         }
+
         Stock stock = stockRepository.findById(dto.stockId()).orElseGet(() -> {
             DetailedStockDto apiStock = stockResponse.results().getFirst();
-            Stock newStock = new Stock(dto.stockId(), apiStock.longName(), apiStock.currency());
-            return stockRepository.save(newStock);
+            return stockRepository.save(new Stock(dto.stockId(), apiStock.longName(), apiStock.currency()));
         });
+
         var accountStockId = new AccountStockId(account.getAccount_id(), stock.getStockId());
-        var accountStock = new AccountStock(accountStockId, account, stock, dto.quantity());
-        accountStockRepository.save(accountStock);
+        accountStockRepository.save(new AccountStock(accountStockId, account, stock, dto.quantity()));
     }
 
     public List<AccountStockResponseDto> getStocksFromActiveAccount(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         if (user.getActive_account_id() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma conta selecionada");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The user has no active account");
         }
         Account account = accountRepository.findById(user.getActive_account_id())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conta não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
         return account.getAccountStocks().stream()
                 .map(as -> accountStockMapper.toResponseDto(as, getTotal(as.getQuantity(), as.getStock().getStockId())))
@@ -110,7 +111,7 @@ public class AccountService {
             var price = response.results().getFirst().regularMarketPrice();
             return price * quantity;
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Erro ao buscar preço da stock");
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Stock service is unavailable");
         }
     }
 

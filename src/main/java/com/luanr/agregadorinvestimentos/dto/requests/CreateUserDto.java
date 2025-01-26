@@ -5,8 +5,11 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public record CreateUserDto(
-        @NotBlank String username,
-        @NotBlank @Email String email,
-        @NotBlank String password
-) {
-}
+        @NotBlank(message = "O nome de usuário é obrigatório")
+        String username,
+        @NotBlank(message = "O email é obrigatório")
+        @Email(message = "Formato de email inválido")
+        String email,
+        @NotBlank(message = "A senha é obrigatória")
+        String password
+) {}
