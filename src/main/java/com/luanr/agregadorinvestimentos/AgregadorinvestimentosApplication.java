@@ -8,6 +8,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @SpringBootApplication
 @EnableFeignClients
 @EnableCaching
+
 public class AgregadorinvestimentosApplication {
 
 	public static void main(String[] args) {
