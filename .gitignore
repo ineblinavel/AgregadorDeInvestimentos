@@ -25,3 +25,4 @@ target/
 src/main/resources/app.key
 src/main/resources/app.pub
 src/main/resources/application.properties
+src/main/resources/application.yml

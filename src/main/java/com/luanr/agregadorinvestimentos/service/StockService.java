@@ -6,6 +6,7 @@ import com.luanr.agregadorinvestimentos.client.brapi_client.BrapiClient;
 import com.luanr.agregadorinvestimentos.dto.responses.StockResponseDto;
 import com.luanr.agregadorinvestimentos.repository.StockRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,19 +14,16 @@ import java.util.List;
 @Service
 public class StockService {
 
-    @Value("${BRAPI_TOKEN}")
-    private String BRAPI_TOKEN;
-
     @Value("${ALPHA_VANTAGE_TOKEN}")
     private String ALPHA_VANTAGE_TOKEN;
 
-
     private final StockRepository stockRepository;
     private final AlphaVantageClient alphaVantageClient;
-
-    public StockService(StockRepository stockRepository, BrapiClient brapiClient, AlphaVantageClient alphaVantageClient) {
+    private final CacheManager cacheManager;
+    public StockService(StockRepository stockRepository, AlphaVantageClient alphaVantageClient, CacheManager cacheManager) {
         this.stockRepository = stockRepository;
         this.alphaVantageClient = alphaVantageClient;
+        this.cacheManager = cacheManager;
     }
 
 

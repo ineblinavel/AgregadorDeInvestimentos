@@ -11,8 +11,11 @@ import com.luanr.agregadorinvestimentos.repository.AccountRepository;
 import com.luanr.agregadorinvestimentos.repository.AccountStockRepository;
 import com.luanr.agregadorinvestimentos.repository.StockRepository;
 import com.luanr.agregadorinvestimentos.repository.UserRepository;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,13 +33,15 @@ public class AccountService {
     private final BrapiClient brapiClient;
     private final UserRepository userRepository;
     private final AccountStockMapper accountStockMapper;
-    public AccountService(AccountRepository accountRepository, StockRepository stockRepository, AccountStockRepository accountStockRepository, BrapiClient brapiClient, UserRepository userRepository, AccountStockMapper accountStockMapper) {
+    private final CacheManager cacheManager;
+    public AccountService(AccountRepository accountRepository, StockRepository stockRepository, AccountStockRepository accountStockRepository, BrapiClient brapiClient, UserRepository userRepository, AccountStockMapper accountStockMapper, CacheManager cacheManager) {
         this.accountRepository = accountRepository;
         this.stockRepository = stockRepository;
         this.accountStockRepository = accountStockRepository;
         this.brapiClient = brapiClient;
         this.userRepository = userRepository;
         this.accountStockMapper = accountStockMapper;
+        this.cacheManager = cacheManager;
     }
 
     public void associateStockToAccount(String accountId, AssociateAccountStockDto associateAccountStockDto) {
@@ -89,7 +94,6 @@ public class AccountService {
         if (user.getActive_account_id() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nenhuma conta selecionada");
         }
-
         Account account = accountRepository.findById(user.getActive_account_id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conta não encontrada"));
 
@@ -98,6 +102,8 @@ public class AccountService {
                 .toList();
     }
 
+    @CircuitBreaker(name = "stock_circuitbreaker", fallbackMethod = "getcachedStockPrice")
+    @Retry(name = "stock_retry", fallbackMethod = "getcachedStockPrice")
     private Double getTotal(Long quantity, String stockId) {
         try {
             var response = brapiClient.getQuote(TOKEN, stockId);
@@ -106,6 +112,10 @@ public class AccountService {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Erro ao buscar preço da stock");
         }
+    }
+
+    private Double getcachedStockPrice(String stockId, Exception e) {
+        return cacheManager.getCache("stockprice").get(stockId, Double.class);
     }
 }
 
