@@ -15,7 +15,6 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,15 +32,16 @@ public class AccountService {
     private final BrapiClient brapiClient;
     private final UserRepository userRepository;
     private final AccountStockMapper accountStockMapper;
-    private final CacheManager cacheManager;
-    public AccountService(AccountRepository accountRepository, StockRepository stockRepository, AccountStockRepository accountStockRepository, BrapiClient brapiClient, UserRepository userRepository, AccountStockMapper accountStockMapper, CacheManager cacheManager) {
+
+    public AccountService(AccountRepository accountRepository, StockRepository stockRepository,
+            AccountStockRepository accountStockRepository, BrapiClient brapiClient, UserRepository userRepository,
+            AccountStockMapper accountStockMapper) {
         this.accountRepository = accountRepository;
         this.stockRepository = stockRepository;
         this.accountStockRepository = accountStockRepository;
         this.brapiClient = brapiClient;
         this.userRepository = userRepository;
         this.accountStockMapper = accountStockMapper;
-        this.cacheManager = cacheManager;
     }
 
     public void associateStockToAccount(String accountId, AssociateAccountStockDto associateAccountStockDto) {
@@ -57,8 +57,7 @@ public class AccountService {
                 account_id,
                 account,
                 stock,
-                associateAccountStockDto.quantity()
-        );
+                associateAccountStockDto.quantity());
         accountStockRepository.save(Entity);
     }
 
@@ -73,7 +72,6 @@ public class AccountService {
 
         Account account = accountRepository.findById(user.getActive_account_id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
-
 
         DetailedBrapiResponseDto stockResponse = brapiClient.getDetaliedQuote(TOKEN, dto.stockId());
         if (stockResponse.results() == null || stockResponse.results().isEmpty()) {
@@ -115,8 +113,4 @@ public class AccountService {
         }
     }
 
-    private Double getcachedStockPrice(String stockId, Exception e) {
-        return cacheManager.getCache("stockprice").get(stockId, Double.class);
-    }
 }
-

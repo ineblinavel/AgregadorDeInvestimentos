@@ -2,7 +2,6 @@ package com.luanr.agregadorinvestimentos.mapper;
 
 import com.luanr.agregadorinvestimentos.dto.requests.CreateUserDto;
 import com.luanr.agregadorinvestimentos.dto.responses.UserResponseDto;
-import com.luanr.agregadorinvestimentos.entity.Account;
 import com.luanr.agregadorinvestimentos.entity.Role;
 import com.luanr.agregadorinvestimentos.entity.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,7 +19,6 @@ public class UserMapper {
         this.accountMapper = accountMapper;
     }
 
-
     public User toEntity(CreateUserDto createUserDto, BCryptPasswordEncoder encoder, Role role) {
         return new User(
                 null,
@@ -29,8 +27,7 @@ public class UserMapper {
                 encoder.encode(createUserDto.password()),
                 Instant.now(),
                 null,
-                Set.of(role)
-        );
+                Set.of(role));
     }
 
     public UserResponseDto toResponseDto(User user) {
@@ -41,7 +38,6 @@ public class UserMapper {
                 user.getUpdated_at(),
                 user.getAccounts().stream()
                         .map(accountMapper::toResponseDto)
-                        .toList()
-        );
+                        .toList());
     }
 }

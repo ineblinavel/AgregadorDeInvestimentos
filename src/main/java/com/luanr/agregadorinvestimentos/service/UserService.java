@@ -5,14 +5,11 @@ import com.luanr.agregadorinvestimentos.dto.requests.CreateAccountDto;
 import com.luanr.agregadorinvestimentos.dto.requests.CreateUserDto;
 import com.luanr.agregadorinvestimentos.dto.requests.UpdateUserDto;
 import com.luanr.agregadorinvestimentos.dto.responses.UserResponseDto;
-import com.luanr.agregadorinvestimentos.entity.Account;
-import com.luanr.agregadorinvestimentos.entity.BillingAddress;
 import com.luanr.agregadorinvestimentos.entity.Role;
 import com.luanr.agregadorinvestimentos.entity.User;
 import com.luanr.agregadorinvestimentos.mapper.AccountMapper;
 import com.luanr.agregadorinvestimentos.mapper.UserMapper;
 import com.luanr.agregadorinvestimentos.repository.AccountRepository;
-import com.luanr.agregadorinvestimentos.repository.BillingAddressRepository;
 import com.luanr.agregadorinvestimentos.repository.RoleRepository;
 import com.luanr.agregadorinvestimentos.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -29,15 +26,16 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
-    private final BillingAddressRepository billingAddressRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final AccountMapper accountMapper;
-    public UserService(UserRepository userRepository, AccountRepository accountRepository, BillingAddressRepository billingAddressRepository, BCryptPasswordEncoder bCryptPasswordEncoder, RoleRepository roleRepository, UserMapper userMapper, AccountMapper accountMapper) {
+
+    public UserService(UserRepository userRepository, AccountRepository accountRepository,
+            BCryptPasswordEncoder bCryptPasswordEncoder,
+            RoleRepository roleRepository, UserMapper userMapper, AccountMapper accountMapper) {
         this.userRepository = userRepository;
         this.accountRepository = accountRepository;
-        this.billingAddressRepository = billingAddressRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
@@ -46,7 +44,7 @@ public class UserService {
 
     @Transactional
     public UUID createUser(CreateUserDto createUserDto) {
-        if(userRepository.existsByUsername(createUserDto.username())){
+        if (userRepository.existsByUsername(createUserDto.username())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username already exists");
         }
 
@@ -56,11 +54,11 @@ public class UserService {
         return userRepository.save(Entity).getUser_id();
     }
 
-    public Optional<User> getUser(String id){
+    public Optional<User> getUser(String id) {
         return userRepository.findById(UUID.fromString(id));
     }
 
-    public List<User> getAllUsers(){
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
@@ -78,23 +76,24 @@ public class UserService {
     @Transactional
     public void updateUser(String id, UpdateUserDto updateUserDto) {
         var userEntity = userRepository.findById(UUID.fromString(id));
-        if (userEntity.isPresent()){
-                var user = userEntity.get();
-                if(updateUserDto.username() != null){
-                    user.setUsername(updateUserDto.username());
-                    user.setUpdated_at(Instant.now());
-                }
-                if(updateUserDto.password() != null){
-                    user.setPassword(bCryptPasswordEncoder.encode(updateUserDto.password()));
-                    user.setUpdated_at(Instant.now());
-                }
-                userRepository.save(user);
+        if (userEntity.isPresent()) {
+            var user = userEntity.get();
+            if (updateUserDto.username() != null) {
+                user.setUsername(updateUserDto.username());
+                user.setUpdated_at(Instant.now());
+            }
+            if (updateUserDto.password() != null) {
+                user.setPassword(bCryptPasswordEncoder.encode(updateUserDto.password()));
+                user.setUpdated_at(Instant.now());
+            }
+            userRepository.save(user);
 
-         }
+        }
     }
 
     public void createAccount(String id, CreateAccountDto createAccountDto) {
-        var user = userRepository.findById(UUID.fromString(id)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        var user = userRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         var account = accountMapper.toEntity(createAccountDto, user);
         accountRepository.save(account);
     }
