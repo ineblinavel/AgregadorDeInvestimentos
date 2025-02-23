@@ -1,138 +1,242 @@
-# 💹 API de Gestão de Investimentos
+# 💹 Agregador de Investimentos API
 
-[![Java 21](https://img.shields.io/badge/Java-21-%23ED8B00?logo=openjdk)](https://www.oracle.com/java/)  
-[![Spring Boot 3.3.7](https://img.shields.io/badge/Spring%20Boot-3.3.7-%236DB33F?logo=spring)](https://spring.io/projects/spring-boot)  
-[![MySQL 8.0](https://img.shields.io/badge/MySQL-8.0-%234479A1?logo=mysql)](https://www.mysql.com/)  
+[![Java 21](https://img.shields.io/badge/Java-21-%23ED8B00?logo=openjdk)](https://www.oracle.com/java/)
+[![Spring Boot 3.3.7](https://img.shields.io/badge/Spring%20Boot-3.3.7-%236DB33F?logo=spring)](https://spring.io/projects/spring-boot)
+[![MySQL 8.0](https://img.shields.io/badge/MySQL-8.0-%234479A1?logo=mysql)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-✔️-%232496ED?logo=docker)](https://www.docker.com/)
 
-API RESTful para gerenciar portfólios de investimentos com integração em tempo real de cotações via **[Brapi](https://brapi.dev/)**.
+API RESTful para gerenciamento de portfólios de investimentos com integração em tempo real de cotações via [Brapi](https://brapi.dev/) e [Alpha Vantage](https://www.alphavantage.co/).
 
----
+## 📋 Sumário
+- [Funcionalidades](#-funcionalidades)
+- [Estrutura do Projeto](#-estrutura-do-projeto)
+- [Tecnologias](#-tecnologias)
+- [Instalação](#-instalação)
+- [Configuração](#-configuração)
+- [Uso](#-uso)
+- [API Endpoints](#-api-endpoints)
+- [Segurança](#-segurança)
+- [Contribuição](#-contribuição)
+- [Licença](#-licença)
 
-## ✨ **Funcionalidades**
+## ✨ Funcionalidades
 
-### 👤 **Usuários**
-- ✅ Cadastro, listagem, atualização e exclusão
-- 🔒 Autenticação JWT
-- 🔄 Atualização parcial (username ou password)
+### 👤 Gestão de Usuários
+- Cadastro e autenticação com JWT
+- Gerenciamento de perfil
+- Múltiplas contas por usuário
+- Níveis de acesso (ADMIN/BASIC)
 
-### 💼 **Contas**
-- ➕ Múltiplas contas por usuário
-- 🏠 Vinculação de endereço de cobrança
-- 🎯 Seleção de conta ativa
+### 💼 Gestão de Contas
+- Criação de múltiplas contas
+- Endereço de cobrança vinculado
+- Seleção de conta ativa
+- Histórico de transações
 
-### 📈 **Investimentos**
-- 🔍 Validação de tickers via Brapi
-- 💰 Cálculo automático do valor total investido
-- 📊 Associação de ações a contas
+### 📈 Gestão de Investimentos
+- Integração com cotações em tempo real
+- Validação automática de tickers
+- Cálculo de valor total investido
+- Acompanhamento de carteira
 
----
+## 📁 Estrutura do Projeto
 
-## 🛠️ **Tecnologias**
+```
+src/
+├── main/
+│   ├── java/
+│   │   └── com/luanr/agregadorinvestimentos/
+│   │       ├── client/          # Integrações externas
+│   │       ├── config/          # Configurações Spring
+│   │       ├── controller/      # Endpoints da API
+│   │       ├── dto/            # Objetos de transferência
+│   │       ├── entity/         # Entidades JPA
+│   │       ├── exception/      # Tratamento de exceções
+│   │       ├── mapper/         # Conversores DTO-Entity
+│   │       ├── repository/     # Interfaces de persistência
+│   │       └── service/        # Lógica de negócio
+│   └── resources/
+│       └── application.properties
+```
 
-| **Categoria**        | **Tecnologias**                                                                |
-|----------------------|--------------------------------------------------------------------------------|
-| **Backend**          | Java 21, Spring Boot 3, Spring Data JPA, Spring Security, OpenFeign            |
-| **Banco de Dados**   | MySQL 8.0 (Docker)                                                             |
-| **Autenticação**     | JWT, Spring Security OAuth2                                                    |
-| **APIs Externas**    | Alpha Vantage, Brapi                                                           |
-| **Testes**           | JUnit 5, Mockito, Insomnia                                                     |
-| **Ferramentas**      | Docker, Lombok, MapStruct                                                      |
+## 🛠️ Tecnologias
 
----
+| Categoria | Tecnologias |
+|-----------|-------------|
+| Backend | Java 21, Spring Boot 3.4.2 |
+| Segurança | Spring Security, JWT |
+| Banco de Dados | MySQL 8.0 |
+| Cache & Resiliência | Spring Cache, Resilience4j |
+| Documentação | OpenAPI (Swagger) |
+| Containerização | Docker |
+| APIs Externas | Brapi, Alpha Vantage |
 
+## 🚀 Instalação
 
-## 📡 **Endpoints**
+### Pré-requisitos
+- Java 21
+- Docker e Docker Compose
+- Maven
+- Git
 
-### 👤 **Autenticação**
+### Clonando o Repositório
+```bash
+git clone https://github.com/seu-usuario/agregador-investimentos.git
+cd agregador-investimentos
+```
 
-| **Método** | **Endpoint** | **Ação**                  |
-|------------|--------------|---------------------------|
-| POST       | `/login`     | Gera token JWT           |
+## ⚙️ Configuração
 
-#### Exemplo de Request (POST /login):
-```json
+1. **Configuração do Ambiente**
+   ```bash
+   # Copie o arquivo de exemplo de variáveis de ambiente
+   cp .env.example .env
+   ```
+
+2. **Gere as Chaves JWT**
+   ```bash
+   # Na pasta src/main/resources
+   openssl genrsa > app.key
+   openssl rsa -in app.key -pubout -out app.pub
+   ```
+
+3. **Configure as Variáveis de Ambiente**
+   ```env
+   # Banco de Dados
+   MYSQL_DATABASE=nome_banco
+   MYSQL_USER=usuario
+   MYSQL_PASSWORD=senha
+   MYSQL_ROOT_PASSWORD=senha_root
+   MYSQL_HOST=localhost
+   MYSQL_PORT=3306
+
+   # APIs
+   BRAPI_TOKEN=seu_token
+   ALPHA_VANTAGE_API=seu_token
+
+   # JWT
+   JWT_PRIVATE_KEY=caminho/app.key
+   JWT_PUBLIC_KEY=caminho/app.pub
+
+   # Admin
+   ADMIN_USERNAME=admin
+   ADMIN_EMAIL=admin@email.com
+   ADMIN_PASSWORD=senha_admin
+   ```
+
+## 🏃 Executando o Projeto
+
+1. **Inicie o Banco de Dados**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **Execute a Aplicação**
+   ```bash
+   ./mvnw spring-boot:run
+   ```
+
+3. **Acesse a Documentação**
+   - Swagger UI: http://localhost:8080/swagger-ui.html
+   - API Docs: http://localhost:8080/v3/api-docs
+
+## 📡 API Endpoints
+
+### Autenticação
+
+```http
+POST /login
+Content-Type: application/json
+
 {
-  "username": "admin",
-  "password": "admin123"
+    "username": "seu_usuario",
+    "password": "sua_senha"
 }
 ```
 
----
+### Usuários
 
-### 👤 **Usuários**
+```http
+# Criar usuário
+POST /users
+Content-Type: application/json
 
-| **Método** | **Endpoint** | **Ação**                  |
-|------------|--------------|---------------------------|
-| POST       | `/users`     | Cria usuário             |
-| GET        | `/users/me`  | Retorna dados do usuário logado |
-| PUT        | `/users/me`  | Atualiza username/password|
-| DELETE     | `/users/me`  | Deleta a Conta            |
-| POST       | `me/accounts/{accountId}/select`| Associa ao usuario logado umas das suas contas|
-
-#### Exemplo de Request (POST /users):
-```json
 {
-  "username": "investidor123",
-  "email": "invest@example.com",
-  "password": "SenhaSegura@123"
-}
-```
-
----
-
-### 💼 **Contas**
-
-| **Método** | **Endpoint**                  | **Ação**                    |
-|------------|-------------------------------|-----------------------------|
-| POST       | `/users/me/accounts`          | Cria nova conta com endereço de cobrança |
-| GET        | `/users/me/accounts`          | Lista todas as contas associadas ao usuario logado |
-| POST       | `/account/stock`              | Associa ação à conta ativa  |
-
-#### Exemplo de Request (POST /users/me/accounts):
-```json
-{
-  "description": "Conta Corrente",
-  "street": "Av. Paulista",
-  "number": 1000
-}
-```
-#### Exemplo de Request(POST /account/stock)
-```json
-{
-    "stockId" : "KO",
-    "quantity" : "100"
+    "username": "novo_usuario",
+    "email": "usuario@email.com",
+    "password": "senha123"
 }
 
+# Obter perfil
+GET /users/me
+Authorization: Bearer {token}
 ```
----
 
-### 📈 **Ações (Stocks)**
+### Contas
 
-| **Método** | **Endpoint**                    | **Ação**                     |
-|------------|---------------------------------|------------------------------|
-| GET        | `/stock`                        | Lista todas as ações (ADMIN) |
-| POST       | `/stock/search`                 | Busca ações por keyword      |
+```http
+# Criar conta
+POST /users/me/accounts
+Authorization: Bearer {token}
+Content-Type: application/json
 
-#### Exemplo de Response (GET /account/{accountId}/stock):
-```json
-[
-  {
+{
+    "description": "Conta Principal",
+    "street": "Av Paulista",
+    "number": 1000
+}
+
+# Listar contas
+GET /users/me/accounts
+Authorization: Bearer {token}
+```
+
+### Investimentos
+
+```http
+# Buscar ações
+POST /stock/search
+Content-Type: application/json
+
+{
+    "keyword": "PETR"
+}
+
+# Associar ação à conta
+POST /account/stock
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
     "stockId": "PETR4",
-    "description": "Petróleo Brasileiro S.A.",
-    "quantity": 150,
-    "totalValue": 7500.00
-  }
-]
+    "quantity": 100
+}
 ```
 
----
+## 🔒 Segurança
 
-## 🔒 **Segurança**
+### Autenticação
+- JWT Bearer Token
+- Tokens com expiração de 450 segundos
+- Refresh token não implementado
 
-- **Roles**: 
-  - ADMIN: Gerencia usuários e ações
-  - BASIC: Operações básicas
-- Endpoints protegidos com JWT no header `Authorization: Bearer <token>`.
-- Senhas criptografadas com BCrypt.
+### Autorização
+- ADMIN: Acesso total ao sistema
+- BASIC: Operações básicas de usuário
+
+### Criptografia
+- Senhas com BCrypt
+- Chaves RSA para JWT
+
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 📞 Suporte
+
+- Documentação: /swagger-ui.html
+- API Docs: /v3/api-docs
+- GitHub Issues
+- Email: 
 
