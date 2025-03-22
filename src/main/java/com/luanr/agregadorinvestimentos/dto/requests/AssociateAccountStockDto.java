@@ -15,6 +15,5 @@ public record AssociateAccountStockDto(
 
         @Schema(description = "Quantidade de ações", example = "100", minimum = "1", requiredMode = REQUIRED)
         @NotNull(message = "A quantidade não pode ser nula")
-        @Positive(message = "A quantidade deve ser um número positivo")
         Long quantity
 ) {}

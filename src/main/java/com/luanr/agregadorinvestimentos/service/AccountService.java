@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -84,7 +85,23 @@ public class AccountService {
         });
 
         var accountStockId = new AccountStockId(account.getAccount_id(), stock.getStockId());
-        accountStockRepository.save(new AccountStock(accountStockId, account, stock, dto.quantity()));
+        Optional<AccountStock> existingAccountStock = accountStockRepository.findById(accountStockId);
+
+        if (existingAccountStock.isPresent()) {
+            var accountStock = existingAccountStock.get();
+            long newQuantity = accountStock.getQuantity() + dto.quantity();
+            if (newQuantity <= 0) {
+                accountStockRepository.delete(accountStock);
+            } else {
+                accountStock.setQuantity(newQuantity);
+                accountStockRepository.save(accountStock);
+            }
+        } else {
+            if (dto.quantity() <= 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot sell/remove stocks you do not own");
+            }
+            accountStockRepository.save(new AccountStock(accountStockId, account, stock, dto.quantity()));
+        }
     }
 
     public List<AccountStockResponseDto> getStocksFromActiveAccount(UUID userId) {
