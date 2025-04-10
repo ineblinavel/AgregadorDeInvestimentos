@@ -33,16 +33,18 @@ public class AccountService {
     private final BrapiClient brapiClient;
     private final UserRepository userRepository;
     private final AccountStockMapper accountStockMapper;
+    private final StockQuoteService stockQuoteService;
 
     public AccountService(AccountRepository accountRepository, StockRepository stockRepository,
             AccountStockRepository accountStockRepository, BrapiClient brapiClient, UserRepository userRepository,
-            AccountStockMapper accountStockMapper) {
+            AccountStockMapper accountStockMapper, StockQuoteService stockQuoteService) {
         this.accountRepository = accountRepository;
         this.stockRepository = stockRepository;
         this.accountStockRepository = accountStockRepository;
         this.brapiClient = brapiClient;
         this.userRepository = userRepository;
         this.accountStockMapper = accountStockMapper;
+        this.stockQuoteService = stockQuoteService;
     }
 
     public void associateStockToAccount(String accountId, AssociateAccountStockDto associateAccountStockDto) {
@@ -114,20 +116,8 @@ public class AccountService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
         return account.getAccountStocks().stream()
-                .map(as -> accountStockMapper.toResponseDto(as, getTotal(as.getQuantity(), as.getStock().getStockId())))
+                .map(as -> accountStockMapper.toResponseDto(as, stockQuoteService.getStockPrice(as.getQuantity(), as.getStock().getStockId())))
                 .toList();
-    }
-
-    @CircuitBreaker(name = "stock_circuitbreaker", fallbackMethod = "getcachedStockPrice")
-    @Retry(name = "stock_retry", fallbackMethod = "getcachedStockPrice")
-    private Double getTotal(Long quantity, String stockId) {
-        try {
-            var response = brapiClient.getQuote(TOKEN, stockId);
-            var price = response.results().getFirst().regularMarketPrice();
-            return price * quantity;
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Stock service is unavailable");
-        }
     }
 
 }
