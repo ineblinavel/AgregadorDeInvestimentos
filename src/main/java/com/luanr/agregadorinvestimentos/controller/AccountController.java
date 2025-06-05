@@ -2,6 +2,7 @@ package com.luanr.agregadorinvestimentos.controller;
 
 import com.luanr.agregadorinvestimentos.dto.requests.AssociateAccountStockDto;
 import com.luanr.agregadorinvestimentos.dto.responses.AccountStockResponseDto;
+import com.luanr.agregadorinvestimentos.dto.responses.TransactionResponseDto;
 import com.luanr.agregadorinvestimentos.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -58,5 +59,18 @@ public class AccountController {
     public ResponseEntity<List<AccountStockResponseDto>> getStocksFromActiveAccount(JwtAuthenticationToken token) {
         List<AccountStockResponseDto> stocks = accountService.getStocksFromActiveAccount(UUID.fromString(token.getName()));
         return ResponseEntity.ok(stocks);
+    }
+
+    @Operation(
+            summary = "Listar transações da conta",
+            description = "Recupera o extrato de compras e vendas da conta ativa"
+    )
+    @ApiResponse(responseCode = "200", description = "Histórico de transações recuperado")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/transactions")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<TransactionResponseDto>> getTransactionsFromActiveAccount(JwtAuthenticationToken token) {
+        List<TransactionResponseDto> transactions = accountService.getTransactionsFromActiveAccount(UUID.fromString(token.getName()));
+        return ResponseEntity.ok(transactions);
     }
 }

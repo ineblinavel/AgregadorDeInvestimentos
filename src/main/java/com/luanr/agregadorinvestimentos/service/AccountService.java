@@ -11,6 +11,8 @@ import com.luanr.agregadorinvestimentos.repository.AccountRepository;
 import com.luanr.agregadorinvestimentos.repository.AccountStockRepository;
 import com.luanr.agregadorinvestimentos.repository.StockRepository;
 import com.luanr.agregadorinvestimentos.repository.UserRepository;
+import com.luanr.agregadorinvestimentos.repository.TransactionRepository;
+import com.luanr.agregadorinvestimentos.dto.responses.TransactionResponseDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import jakarta.transaction.Transactional;
@@ -34,10 +36,12 @@ public class AccountService {
     private final UserRepository userRepository;
     private final AccountStockMapper accountStockMapper;
     private final StockQuoteService stockQuoteService;
+    private final TransactionRepository transactionRepository;
 
     public AccountService(AccountRepository accountRepository, StockRepository stockRepository,
             AccountStockRepository accountStockRepository, BrapiClient brapiClient, UserRepository userRepository,
-            AccountStockMapper accountStockMapper, StockQuoteService stockQuoteService) {
+            AccountStockMapper accountStockMapper, StockQuoteService stockQuoteService,
+            TransactionRepository transactionRepository) {
         this.accountRepository = accountRepository;
         this.stockRepository = stockRepository;
         this.accountStockRepository = accountStockRepository;
@@ -45,6 +49,7 @@ public class AccountService {
         this.userRepository = userRepository;
         this.accountStockMapper = accountStockMapper;
         this.stockQuoteService = stockQuoteService;
+        this.transactionRepository = transactionRepository;
     }
 
     public void associateStockToAccount(String accountId, AssociateAccountStockDto associateAccountStockDto) {
@@ -89,10 +94,24 @@ public class AccountService {
         var accountStockId = new AccountStockId(account.getAccount_id(), stock.getStockId());
         Optional<AccountStock> existingAccountStock = accountStockRepository.findById(accountStockId);
 
+        Double price = 0.0;
+        try {
+            var quote = brapiClient.getQuote(TOKEN, dto.stockId());
+            price = quote.results().getFirst().regularMarketPrice();
+        } catch (Exception e) {
+            // fallback generic
+        }
+
+        String type = dto.quantity() >= 0 ? "BUY" : "SELL";
+        long transQuantity = Math.abs(dto.quantity());
+
         if (existingAccountStock.isPresent()) {
             var accountStock = existingAccountStock.get();
             long newQuantity = accountStock.getQuantity() + dto.quantity();
-            if (newQuantity <= 0) {
+            if (newQuantity < 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot sell more than you own");
+            }
+            if (newQuantity == 0) {
                 accountStockRepository.delete(accountStock);
             } else {
                 accountStock.setQuantity(newQuantity);
@@ -104,6 +123,9 @@ public class AccountService {
             }
             accountStockRepository.save(new AccountStock(accountStockId, account, stock, dto.quantity()));
         }
+
+        Transaction transaction = new Transaction(null, account, stock.getStockId(), transQuantity, price, type, null);
+        transactionRepository.save(transaction);
     }
 
     public List<AccountStockResponseDto> getStocksFromActiveAccount(UUID userId) {
@@ -118,6 +140,23 @@ public class AccountService {
         return account.getAccountStocks().stream()
                 .map(as -> accountStockMapper.toResponseDto(as, stockQuoteService.getStockPrice(as.getQuantity(), as.getStock().getStockId())))
                 .toList();
+    }
+
+    public List<TransactionResponseDto> getTransactionsFromActiveAccount(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (user.getActive_account_id() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The user has no active account");
+        }
+        List<Transaction> transactions = transactionRepository.findByAccountId(user.getActive_account_id());
+        return transactions.stream().map(t -> new TransactionResponseDto(
+                t.getTransactionId().toString(),
+                t.getStockId(),
+                t.getQuantity(),
+                t.getPrice(),
+                t.getType(),
+                t.getCreatedAt()
+        )).toList();
     }
 
 }
