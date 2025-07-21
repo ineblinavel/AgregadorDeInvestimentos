@@ -99,9 +99,11 @@ public class UserService {
     }
 
     public List<AccountResponseDto> getAccountById(String id) {
-        var user = userRepository.findById(UUID.fromString(id))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return user.getAccounts().stream().map(accountMapper::toResponseDto).toList();
+        if (!userRepository.existsById(UUID.fromString(id))) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        var accounts = accountRepository.findAllByUserIdWithBillingAddress(UUID.fromString(id));
+        return accounts.stream().map(accountMapper::toResponseDto).toList();
     }
 
     @Transactional

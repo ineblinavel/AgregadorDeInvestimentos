@@ -78,7 +78,7 @@ public class AccountService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The user has no active account");
         }
 
-        Account account = accountRepository.findById(user.getActive_account_id())
+        Account account = accountRepository.findByIdWithStocks(user.getActive_account_id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
         DetailedBrapiResponseDto stockResponse = brapiClient.getDetaliedQuote(TOKEN, dto.stockId());
@@ -134,7 +134,7 @@ public class AccountService {
         if (user.getActive_account_id() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The user has no active account");
         }
-        Account account = accountRepository.findById(user.getActive_account_id())
+        Account account = accountRepository.findByIdWithStocks(user.getActive_account_id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
         return account.getAccountStocks().stream()
