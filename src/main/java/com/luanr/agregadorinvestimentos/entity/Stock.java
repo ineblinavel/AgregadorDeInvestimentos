@@ -1,6 +1,5 @@
 package com.luanr.agregadorinvestimentos.entity;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -24,5 +23,13 @@ public class Stock {
     @Column (name = "currency")
     private String currency;
 
+    @Column(name = "last_price")
+    private Double lastPrice;
 
+    public Stock(String stockId, String description, String currency) {
+        this.stockId = stockId;
+        this.description = description;
+        this.currency = currency;
+        this.lastPrice = null;
+    }
 }

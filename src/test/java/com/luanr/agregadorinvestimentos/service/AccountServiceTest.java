@@ -86,7 +86,7 @@ class AccountServiceTest {
         when(accountStockRepository.findById(any())).thenReturn(Optional.empty());
 
         var mockQuoteResponse = new com.luanr.agregadorinvestimentos.client.brapi_client.dto.BrapiResponseDto(
-                List.of(new com.luanr.agregadorinvestimentos.client.brapi_client.dto.StockDto(35.0))
+                List.of(new com.luanr.agregadorinvestimentos.client.brapi_client.dto.StockDto("PETR4", 35.0))
         );
         when(brapiClient.getQuote(any(), eq("PETR4"))).thenReturn(mockQuoteResponse);
 
@@ -123,7 +123,7 @@ class AccountServiceTest {
         when(accountStockRepository.findById(any())).thenReturn(Optional.of(existingAccountStock));
 
         var mockQuoteResponse = new com.luanr.agregadorinvestimentos.client.brapi_client.dto.BrapiResponseDto(
-                List.of(new com.luanr.agregadorinvestimentos.client.brapi_client.dto.StockDto(35.0))
+                List.of(new com.luanr.agregadorinvestimentos.client.brapi_client.dto.StockDto("PETR4", 35.0))
         );
         when(brapiClient.getQuote(any(), eq("PETR4"))).thenReturn(mockQuoteResponse);
 
@@ -149,7 +149,7 @@ class AccountServiceTest {
         when(accountStockRepository.findById(any())).thenReturn(Optional.of(existingAccountStock));
 
         var mockQuoteResponse = new com.luanr.agregadorinvestimentos.client.brapi_client.dto.BrapiResponseDto(
-                List.of(new com.luanr.agregadorinvestimentos.client.brapi_client.dto.StockDto(35.0))
+                List.of(new com.luanr.agregadorinvestimentos.client.brapi_client.dto.StockDto("PETR4", 35.0))
         );
         when(brapiClient.getQuote(any(), eq("PETR4"))).thenReturn(mockQuoteResponse);
 
@@ -175,7 +175,7 @@ class AccountServiceTest {
         when(accountStockRepository.findById(any())).thenReturn(Optional.of(existingAccountStock));
 
         var mockQuoteResponse = new com.luanr.agregadorinvestimentos.client.brapi_client.dto.BrapiResponseDto(
-                List.of(new com.luanr.agregadorinvestimentos.client.brapi_client.dto.StockDto(35.0))
+                List.of(new com.luanr.agregadorinvestimentos.client.brapi_client.dto.StockDto("PETR4", 35.0))
         );
         when(brapiClient.getQuote(any(), eq("PETR4"))).thenReturn(mockQuoteResponse);
 

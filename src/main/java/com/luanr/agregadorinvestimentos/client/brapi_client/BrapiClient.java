@@ -6,6 +6,7 @@ import com.luanr.agregadorinvestimentos.client.brapi_client.dto.DetailedBrapiRes
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(
@@ -25,13 +26,13 @@ public interface BrapiClient {
     @GetMapping(value = "api/quote/{stockId}")
     BrapiResponseDto getQuote(
             @RequestParam("token") String token,
-            @RequestParam("stockId") String stockId
+            @PathVariable("stockId") String stockId
     );
 
     @GetMapping(value = "api/quote/{stockId}")
     DetailedBrapiResponseDto getDetaliedQuote(
             @RequestParam("token") String token,
-            @RequestParam("stockId") String stockId
+            @PathVariable("stockId") String stockId
     );
 
 }

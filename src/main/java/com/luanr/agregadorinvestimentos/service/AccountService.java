@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -137,8 +138,17 @@ public class AccountService {
         Account account = accountRepository.findByIdWithStocks(user.getActive_account_id())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
+        List<String> stockIds = account.getAccountStocks().stream()
+                .map(as -> as.getStock().getStockId())
+                .toList();
+
+        Map<String, Double> prices = stockQuoteService.getStocksPrices(stockIds);
+
         return account.getAccountStocks().stream()
-                .map(as -> accountStockMapper.toResponseDto(as, stockQuoteService.getStockPrice(as.getQuantity(), as.getStock().getStockId())))
+                .map(as -> {
+                    Double price = prices.getOrDefault(as.getStock().getStockId(), 0.0);
+                    return accountStockMapper.toResponseDto(as, price * as.getQuantity());
+                })
                 .toList();
     }
 
