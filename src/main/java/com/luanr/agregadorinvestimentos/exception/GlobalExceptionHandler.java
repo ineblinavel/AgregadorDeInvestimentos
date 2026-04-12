@@ -51,4 +51,18 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(feign.FeignException.class)
+    public ResponseEntity<ApiError> handleFeignException(feign.FeignException ex) {
+        HttpStatus status = HttpStatus.resolve(ex.status());
+        if (status == null) {
+            status = HttpStatus.BAD_GATEWAY;
+        }
+        ApiError error = new ApiError(
+                status.value(),
+                "Falha de integracao com a API externa: " + ex.getMessage(),
+                Instant.now()
+        );
+        return new ResponseEntity<>(error, status);
+    }
 }

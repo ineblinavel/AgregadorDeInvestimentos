@@ -7,6 +7,7 @@ import com.luanr.agregadorinvestimentos.repository.StockRepository;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,6 +30,7 @@ public class StockQuoteService {
         this.stockRepository = stockRepository;
     }
 
+    @Cacheable(value = "stockQuotes")
     @CircuitBreaker(name = "stock_circuitbreaker", fallbackMethod = "getCachedStockPrices")
     @Retry(name = "stock_retry", fallbackMethod = "getCachedStockPrices")
     public Map<String, Double> getStocksPrices(List<String> stockIds) {
