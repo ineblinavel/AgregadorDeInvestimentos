@@ -31,13 +31,16 @@ API RESTful para gerenciamento de portfólios de investimentos com integração 
 - Criação de múltiplas contas
 - Endereço de cobrança vinculado
 - Seleção de conta ativa
-- Histórico de transações
+- Histórico e extrato de transações de compra/venda (`GET /account/transactions`)
 
 ### 📈 Gestão de Investimentos
 - Integração com cotações em tempo real
 - Validação automática de tickers
 - Cálculo de valor total investido
 - Acompanhamento de carteira
+- Otimização de rede com consultas HTTP em lote (batching)
+- Resiliência com fallback local pelo banco de dados (último preço conhecido) via Resilience4j (Circuit Breaker e Retry)
+- Caching local de cotações para economia de chamadas externas e melhor performance
 
 ## 📁 Estrutura do Projeto
 
@@ -65,10 +68,12 @@ src/
 |-----------|-------------|
 | Backend | Java 21, Spring Boot 3.4.2 |
 | Segurança | Spring Security, JWT |
-| Banco de Dados | MySQL 8.0 |
-| Cache & Resiliência | Spring Cache, Resilience4j |
+| Banco de Dados | MySQL 8.0, Migrações com Flyway |
+| Cache & Resiliência | Spring Cache (ConcurrentMap), Resilience4j (Circuit Breaker, Retry) |
 | Documentação | OpenAPI (Swagger) |
-| Containerização | Docker |
+| DevOps / CI/CD | GitHub Actions Pipeline |
+| Testes | JUnit 5, Mockito |
+| Containerização | Docker, Docker Compose |
 | APIs Externas | Brapi, Alpha Vantage |
 
 ## 🚀 Instalação
